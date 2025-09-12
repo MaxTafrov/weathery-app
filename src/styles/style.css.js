@@ -158,6 +158,30 @@ const css = {
 			}
 		}
 	`,
+	SuggestionsList: styled.ul`
+		list-style: none;
+		padding: 0;
+		margin-top: -1.5rem;
+		margin-bottom: 2rem;
+		background: #444444;
+		border-radius: 10px;
+		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+		max-height: 200px;
+		overflow-y: auto;
+		z-index: 10;
+	`,
+
+	SuggestionItem: styled.li`
+		padding: 10px 15px;
+		text-align: left;
+		cursor: pointer;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		transition: background-color 0.2s ease;
+
+		&:hover {
+			background-color: #555555;
+		}
+	`,
 }
 
 export default css

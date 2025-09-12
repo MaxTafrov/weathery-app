@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import css from '../styles/style.css'
 import {
 	WiCloudy,
@@ -25,14 +25,42 @@ const {
 	Title,
 	SearchInput,
 	SearchForm,
+	SuggestionItem,
+	SuggestionsList,
 } = css
 
 const API_KEY = 'a605bab14d55ddf652a3f2707b6de6de'
+const GEO_API_URL = 'https://wft-geo-db.p.rapidapi.com/v1/geo/cities'
+const GEO_API_OPTIONS = {
+	method: 'GET',
+	headers: {
+		'x-rapidapi-key': '52dabac7b1msh101a45da4b50ff5p1068a3jsn096035db928e',
+		'x-rapidapi-host': 'wft-geo-db.p.rapidapi.com',
+	},
+}
 
 const Main = props => {
 	const [weatherData, setWeatherData] = useState(null)
 	const [city, setCity] = useState('')
 	const [error, setError] = useState(null)
+	const [suggestions, setSuggestions] = useState([])
+
+	const fetchCities = async inputValue => {
+		if (inputValue.length < 3) {
+			setSuggestions([])
+			return
+		}
+		try {
+			const response = await fetch(
+				`${GEO_API_URL}?namePrefix=${inputValue}`,
+				GEO_API_OPTIONS
+			)
+			const data = await response.json()
+			setSuggestions(data.data || [])
+		} catch (err) {
+			console.error('Error fetching city suggestions:', err)
+		}
+	}
 
 	const fetchWeather = async city => {
 		if (city.trim() === '') {
@@ -86,25 +114,52 @@ const Main = props => {
 		}
 	}
 
+	useEffect(() => {
+		const handler = setTimeout(() => {
+			fetchCities(city)
+		}, 500)
+
+		return () => {
+			clearTimeout(handler)
+		}
+	}, [city])
+
+	const handleSuggestionClick = cityName => {
+		setCity(cityName)
+		setSuggestions([])
+		fetchWeather(cityName)
+	}
+
 	return (
 		<>
-			      <GlobalStyle /> 
+			<GlobalStyle />
 			<AppContainer>
-				        <Title>Weather App</Title>   
+				<Title>Weather App</Title>
 				<SearchForm onSubmit={handleSearch}>
-					         {' '}
 					<SearchInput
 						type='text'
 						placeholder='Enter a city...'
 						value={city}
 						onChange={e => setCity(e.target.value)}
-					></SearchInput>
-					          <SearchButton type='submit'>Search</SearchButton>     
+					/>
+					<SearchButton type='submit'>Search</SearchButton>
 				</SearchForm>
+				{suggestions.length > 0 && (
+					<SuggestionsList>
+						{suggestions.map(s => (
+							<SuggestionItem
+								key={s.id}
+								onClick={() => handleSuggestionClick(s.name)}
+							>
+								{s.name}, {s.countryCode}
+							</SuggestionItem>
+						))}
+					</SuggestionsList>
+				)}
 				{weatherData && (
 					<WeatherDisplay>
-						<CityName>{weatherData.name}</CityName> 
-						<Temperature>{Math.round(weatherData.main.temp)}°C</Temperature>   
+						<CityName>{weatherData.name}</CityName>
+						<Temperature>{Math.round(weatherData.main.temp)}°C</Temperature>
 						<WeatherIcon>
 							{getWeatherIcon(weatherData.weather[0].main)}
 						</WeatherIcon>
@@ -127,7 +182,7 @@ const Main = props => {
 						</DetailsContainer>
 					</WeatherDisplay>
 				)}
-				{error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>} 
+				{error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
 			</AppContainer>
 		</>
 	)
