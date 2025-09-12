@@ -2,11 +2,12 @@ import styled, { createGlobalStyle } from 'styled-components'
 
 const css = {
 	GlobalStyle: createGlobalStyle`
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
 
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       color: #fff;
       background-color: #37353E;
       display: flex;
@@ -23,13 +24,13 @@ const css = {
 		border-radius: 20px;
 		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 		width: 90%;
-		max-width: 500px;
+		max-width: 400px;
 		text-align: center;
 		margin: 20px;
 	`,
 
 	Title: styled.h1`
-		font-size: 2.5rem;
+		font-size: 2rem;
 		font-weight: 700;
 		margin-bottom: 1.5rem;
 		color: #d3dad9;
@@ -40,7 +41,7 @@ const css = {
 		flex-direction: column;
 		gap: 10px;
 		margin-bottom: 2rem;
-		height: 50px;
+		height: auto;
 		width: 100%;
 
 		@media (min-width: 600px) {
@@ -55,7 +56,7 @@ const css = {
 		border-radius: 10px;
 		background-color: #715a5a;
 		color: #fff;
-		font-size: 20px;
+		font-size: 16px;
 
 		&::placeholder {
 			color: #d3dad9;
@@ -75,7 +76,7 @@ const css = {
 		padding: 10px 20px;
 		border-radius: 10px;
 		cursor: pointer;
-		font-size: 1.2rem;
+		font-size: 1rem;
 		transition: background-color 0.3s ease;
 
 		&:hover {
@@ -88,7 +89,7 @@ const css = {
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		gap: 0.8rem;
+		gap: 1rem;
 	`,
 
 	CityName: styled.h2`
@@ -103,12 +104,11 @@ const css = {
 		color: #d3dad9;
 	`,
 
-	WeatherDescription: styled.div`
+	WeatherDescription: styled.p`
 		font-size: 1.2rem;
 		margin: 0;
 		color: #d3dad9;
 		text-transform: capitalize;
-		justify-content: center;
 	`,
 
 	DetailsContainer: styled.div`
