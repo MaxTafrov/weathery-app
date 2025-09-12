@@ -27,6 +27,7 @@ const {
 	SearchForm,
 	SuggestionItem,
 	SuggestionsList,
+	LanguageButton,
 } = css
 
 const API_KEY = 'a605bab14d55ddf652a3f2707b6de6de'
@@ -44,7 +45,53 @@ const Main = props => {
 	const [city, setCity] = useState('')
 	const [error, setError] = useState(null)
 	const [suggestions, setSuggestions] = useState([])
+	const [lang, setLang] = useState('ru') // Добавили новое состояние для языка
 
+	// Функция для получения погоды по координатам
+	const fetchWeatherByCoords = async (lat, lon, currentLang) => {
+		console.log('Fetching weather by coordinates:', lat, lon)
+		try {
+			const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${currentLang}`
+			const response = await fetch(url)
+			if (!response.ok) {
+				throw new Error('Weather data not found for these coordinates.')
+			}
+			const data = await response.json()
+			setWeatherData(data)
+			setCity(data.name)
+			setError(null)
+		} catch (err) {
+			console.error('Error fetching weather data by coordinates:', err)
+			setError(err.message)
+			setWeatherData(null)
+		}
+	}
+
+	// Функция для получения погоды по названию города
+	const fetchWeather = async (city, currentLang) => {
+		if (city.trim() === '') {
+			setError('Please enter a city name.')
+			return
+		}
+
+		console.log('Fetching weather for city:', city)
+		try {
+			const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=${currentLang}`
+			const response = await fetch(url)
+			if (!response.ok) {
+				throw new Error('City not found')
+			}
+			const data = await response.json()
+			setWeatherData(data)
+			setError(null)
+		} catch (err) {
+			console.error('Error fetching weather data:', err)
+			setError(err.message)
+			setWeatherData(null)
+		}
+	}
+
+	// Функция для поиска городов с автозаполнением
 	const fetchCities = async inputValue => {
 		if (inputValue.length < 3) {
 			setSuggestions([])
@@ -62,36 +109,18 @@ const Main = props => {
 		}
 	}
 
-	const fetchWeather = async city => {
-		if (city.trim() === '') {
-			setError('Please enter a city name.')
-			return
-		}
-
-		console.log('Отправляю запрос для города:', city)
-		try {
-			const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric&lang=en`
-			const response = await fetch(url)
-			console.log('Ответ получен. Статус:', response.status, 'OK:', response.ok)
-
-			if (!response.ok) {
-				throw new Error('City not found')
-			}
-
-			const data = await response.json()
-			setWeatherData(data)
-			setError(null)
-			console.log('Данные успешно загружены:', data)
-		} catch (err) {
-			console.error('Ошибка при получении данных:', err)
-			setError(err.message)
-			setWeatherData(null)
-		}
-	}
-
 	const handleSearch = event => {
 		event.preventDefault()
-		fetchWeather(city)
+		fetchWeather(city, lang)
+	}
+
+	const handleLanguageToggle = () => {
+		const newLang = lang === 'en' ? 'ru' : 'en'
+		setLang(newLang)
+		// Обновляем погоду, если она уже отображена
+		if (weatherData) {
+			fetchWeather(weatherData.name, newLang)
+		}
 	}
 
 	const getWeatherIcon = weatherType => {
@@ -118,23 +147,89 @@ const Main = props => {
 		const handler = setTimeout(() => {
 			fetchCities(city)
 		}, 500)
-
 		return () => {
 			clearTimeout(handler)
 		}
 	}, [city])
 
+	useEffect(() => {
+		if ('geolocation' in navigator) {
+			navigator.geolocation.getCurrentPosition(
+				position => {
+					fetchWeatherByCoords(
+						position.coords.latitude,
+						position.coords.longitude,
+						lang
+					)
+				},
+				error => {
+					console.error('Geolocation error:', error)
+					setError('Геолокация недоступна. Пожалуйста, введите город вручную.')
+				}
+			)
+		} else {
+			setError('Геолокация не поддерживается вашим браузером.')
+		}
+	}, [])
+
 	const handleSuggestionClick = cityName => {
 		setCity(cityName)
 		setSuggestions([])
-		fetchWeather(cityName)
+		fetchWeather(cityName, lang)
+	}
+
+	const displayWeatherDescription = () => {
+		if (weatherData) {
+			// Перевод на русский, если lang='ru'
+			if (lang === 'ru') {
+				switch (weatherData.weather[0].main) {
+					case 'Clear':
+						return 'Ясно'
+					case 'Clouds':
+						return 'Облачно'
+					case 'Rain':
+						return 'Дождь'
+					case 'Thunderstorm':
+						return 'Гроза'
+					case 'Snow':
+						return 'Снег'
+					case 'Mist':
+					case 'Fog':
+						return 'Туман'
+					default:
+						return weatherData.weather[0].description
+				}
+			}
+			return weatherData.weather[0].description
+		}
+		return ''
+	}
+
+	const displayDetailLabel = label => {
+		if (lang === 'ru') {
+			switch (label) {
+				case 'Humidity':
+					return 'Влажность'
+				case 'Wind speed':
+					return 'Скорость ветра'
+				case 'Pressure':
+					return 'Давление'
+				default:
+					return label
+			}
+		}
+		return label
 	}
 
 	return (
 		<>
 			<GlobalStyle />
 			<AppContainer>
+				<LanguageButton onClick={handleLanguageToggle}>
+					{lang === 'ru' ? 'Сменить на English' : 'Switch to Русский'}
+				</LanguageButton>
 				<Title>Weather App</Title>
+
 				<SearchForm onSubmit={handleSearch}>
 					<SearchInput
 						type='text'
@@ -164,20 +259,20 @@ const Main = props => {
 							{getWeatherIcon(weatherData.weather[0].main)}
 						</WeatherIcon>
 						<WeatherDescription>
-							{weatherData.weather[0].description}
+							{displayWeatherDescription()}
 						</WeatherDescription>
 						<DetailsContainer>
 							<DetailItem>
 								<DetailValue>{weatherData.main.humidity}%</DetailValue>
-								<DetailLabel>Humidity</DetailLabel>
+								<DetailLabel>{displayDetailLabel('Humidity')}</DetailLabel>
 							</DetailItem>
 							<DetailItem>
 								<DetailValue>{weatherData.wind.speed}km/h</DetailValue>
-								<DetailLabel>Wind speed</DetailLabel>
+								<DetailLabel>{displayDetailLabel('Wind speed')}</DetailLabel>
 							</DetailItem>
 							<DetailItem>
 								<DetailValue>{weatherData.main.pressure} hPa</DetailValue>
-								<DetailLabel>Pressure</DetailLabel>
+								<DetailLabel>{displayDetailLabel('Pressure')}</DetailLabel>
 							</DetailItem>
 						</DetailsContainer>
 					</WeatherDisplay>

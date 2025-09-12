@@ -182,6 +182,22 @@ const css = {
 			background-color: #555555;
 		}
 	`,
+	LanguageButton: styled.button`
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		background-color: transparent;
+		border: 2px solid #d3dad9;
+		color: #d3dad9;
+		padding: 5px 10px;
+		border-radius: 5px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: background-color 0.3s ease;
+		&:hover {
+			background-color: #555;
+		}
+	`,
 }
 
 export default css
