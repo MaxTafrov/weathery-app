@@ -47,7 +47,6 @@ npm start
 
 - 🌐 GitHub: [Max Tafrov](https://github.com/usernamehttps://github.com/MaxTafrov)
 - ✉️ Email: loler20017@gmail.com
-- 💬 Telegram: [@maksudaww](https://t.me/maksudaww)
 - 🔗 LinkedIn: [Maxim Tafrov](https://www.linkedin.com/in/maxim-tafrov-56a243378/)
 
 ## ⭐ If you like this project, consider giving it a star — it really helps and keeps me motivated! 😉
